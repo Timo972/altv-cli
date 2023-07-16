@@ -10,7 +10,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "altv",
 	Short: "alt:V command line tool",
-	Long:  `A blazingly fast alt:V server manager cli written in Go.`,
+	Long:  `A blazingly fast alt:V server manager cli written in go.`,
 }
 
 func Execute() {

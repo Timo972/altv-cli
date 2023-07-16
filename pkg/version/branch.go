@@ -7,3 +7,7 @@ const (
 	BranchRC      Branch = "rc"
 	BranchDev     Branch = "dev"
 )
+
+func (b Branch) String() string {
+	return string(b)
+}

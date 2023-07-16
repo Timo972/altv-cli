@@ -41,7 +41,7 @@ func NewInstaller(path string, arch platform.Arch, branch version.Branch, module
 }
 
 // getCDN returns the CDN that hosts the given module.
-func (i *downloader) getCDN(module string) cdn.CDN {
+func (i *downloader) moduleCDN(module string) cdn.CDN {
 	for _, cdn := range i.cdns {
 		if cdn.Has(module) {
 			return cdn
@@ -57,13 +57,16 @@ func (d *downloader) AddCDN(cdn cdn.CDN) {
 func (d *downloader) Download(ctx context.Context, path string) error {
 	allFiles := make([]*cdn.File, 0)
 	for _, module := range d.modules {
-		cdn := d.getCDN(module)
+		cdn := d.moduleCDN(module)
+		logging.DebugLogger.Printf("cdn %v for module %s", cdn, module)
+
 		files, err := cdn.Files(d.branch, d.arch, module)
 		if err != nil {
-			logging.WarnLogger.Printf("no cdn for module %s found, skipping", module)
+			logging.WarnLogger.Printf("no files for module %s found, skipping: %v", module, err)
 			continue
 		}
 
+		logging.DebugLogger.Printf("%d files for module %s", len(files), module)
 		allFiles = append(allFiles, files...)
 	}
 
@@ -133,6 +136,12 @@ func downloadFile(c chan error, p string, file *cdn.File) {
 		return
 	}
 	logging.DebugLogger.Printf("wrote file %s, checking checksum", file.Name)
+
+	if file.Hash == "" {
+		logging.WarnLogger.Printf("no checksum for %s, be careful!", file.Name)
+		c <- nil
+		return
+	}
 
 	checksum := hex.EncodeToString(h.Sum(nil))
 	if checksum != file.Hash {

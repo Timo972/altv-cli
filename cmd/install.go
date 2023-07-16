@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/timo972/altv-cli/pkg/ghcdn"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
 	"github.com/timo972/altv-cli/pkg/server"
@@ -20,13 +21,20 @@ var debug bool
 
 var installCmd = &cobra.Command{
 	Use:     "install",
-	Short:   "Install alt:V  server",
+	Short:   "Install alt:V server",
 	Long:    `Install the alt:V server into a directory.`,
 	Aliases: []string{"i"},
 	Run: func(cmd *cobra.Command, args []string) {
 		logging.InfoLogger.Println("alt:V server installer")
+		logging.SetDebug(debug)
 
 		inst := server.NewInstaller(path, platform.Arch(arch), version.Branch(branch), modules)
+		inst.AddCDN(ghcdn.New(ghcdn.ModuleMap{
+			"go-module": &ghcdn.Repository{
+				Owner: "timo972",
+				Name:  "altv-go",
+			},
+		}))
 
 		var ctx context.Context
 		var cancel context.CancelFunc

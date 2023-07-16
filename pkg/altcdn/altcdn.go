@@ -88,7 +88,7 @@ func (c *altCDN) fileURL(branch version.Branch, arch platform.Arch, module strin
 func (c *altCDN) Files(branch version.Branch, arch platform.Arch, module string) ([]*cdn.File, error) {
 	man, err := c.Manifest(branch, arch, module)
 	if err != nil {
-		return nil, fmt.Errorf("unable to gather include files: %w", err)
+		return nil, fmt.Errorf("unable to gather module files: %w", err)
 	}
 
 	logging.DebugLogger.Println("got manifest")

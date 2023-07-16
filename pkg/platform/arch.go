@@ -21,6 +21,17 @@ func (a Arch) ServerBinaryName() string {
 	}
 }
 
+func (a Arch) SharedLibExt() string {
+	switch a {
+	case ArchLinux:
+		return "so"
+	case ArchWin32:
+		return "dll"
+	default:
+		return ""
+	}
+}
+
 func (a Arch) String() string {
 	return string(a)
 }
