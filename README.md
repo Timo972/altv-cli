@@ -27,7 +27,7 @@ There are several altv server updater libraries and scripts out there, but none 
 - [x] Reduces bandwidth usage to a minimum
 
 ### <a name="planned-features"></a>Planned Features
-- [ ] Workspace configs for use of cli without having to set flags every time: altv init -p ./server -b dev -t 30
+- [ ] Workspace configs for use of cli without having to set flags every time: `altv init -p ./server -b dev -t 30`
 - [ ] JSON configuration for cdn's
 - [ ] CI integrations
 
