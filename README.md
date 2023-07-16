@@ -4,11 +4,20 @@ Incredibly flexible and easy to use altv server manager. Install or update only 
 Supports every official module and continues working even on module file renamings by respecting their manifest.json.
 Extendable to support custom modules, feel free to open a pull request to add compatibility.
 
-## Motivation
+## Table of Contents
+- [Motivation](#motivation)
+    - [Features](#features)
+    - [Planned Features](#planned-features)
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Example Makefile](#makefile)
+    - [Example package.json](#packagejson)
+
+## <a name="motivation"></a>Motivation
 
 There are several altv server updater libraries and scripts out there, but none of them is as flexible and resilient as this one. I was annoyed by the fact that I always had to download the whole server files every time an update released. This is especially annoying if your internet connection poor. Additionally I wanted to have a tool that is able to update the server files even if the module files are renamed. See for example the js-module node library name.
 
-### Features
+### <a name="features"></a>Features
 
 - [x] Fast
 - [x] Flexible
@@ -17,24 +26,24 @@ There are several altv server updater libraries and scripts out there, but none 
 - [x] Supports custom modules
 - [x] Reduces bandwidth usage to a minimum
 
-### Planned Features
+### <a name="planned-features"></a>Planned Features
 - [ ] Workspace configs for use of cli without having to set flags every time: altv init -p ./server -b dev -t 30
 - [ ] JSON configuration for cdn's
 - [ ] CI integrations
 
-## Installation
+## <a name="installation"></a>Installation
 
 ```bash
 go install github.com/timo972/altv-cli/cmd/altv@latest
 ```
 
-## Usage
+## <a name="usage"></a>Usage
 
 Type `altv --help` to get a list of all available commands and flags.<br />
 Consider using Makefile or a package.json script to simplify the usage.<br />
 
 Example `Makefile`:
-
+<a name="makefile"></a>
 ```makefile
 .PHONY: install update verify
 
@@ -51,7 +60,7 @@ verify:
 ```
 
 Example `package.json`:
-
+<a name="packagejson"></a>
 ```json
 {
   "scripts": {
