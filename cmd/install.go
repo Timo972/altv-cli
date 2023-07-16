@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/timo972/altv-cli/pkg/downloader"
 	"github.com/timo972/altv-cli/pkg/ghcdn"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
-	"github.com/timo972/altv-cli/pkg/server"
 	"github.com/timo972/altv-cli/pkg/version"
 )
 
@@ -28,7 +28,7 @@ var installCmd = &cobra.Command{
 		logging.InfoLogger.Println("alt:V server installer")
 		logging.SetDebug(debug)
 
-		inst := server.NewInstaller(path, platform.Arch(arch), version.Branch(branch), modules)
+		inst := downloader.New(path, platform.Arch(arch), version.Branch(branch), modules)
 		inst.AddCDN(ghcdn.New(ghcdn.ModuleMap{
 			"go-module": &ghcdn.Repository{
 				Owner: "timo972",

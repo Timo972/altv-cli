@@ -1,4 +1,4 @@
-package server
+package downloader
 
 import (
 	"context"
@@ -30,7 +30,7 @@ type downloader struct {
 	modules []string
 }
 
-func NewInstaller(path string, arch platform.Arch, branch version.Branch, modules []string) Downloader {
+func New(path string, arch platform.Arch, branch version.Branch, modules []string) Downloader {
 	return &downloader{
 		path:    path,
 		arch:    arch,
