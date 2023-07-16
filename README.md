@@ -32,10 +32,11 @@ There are several altv server updater libraries and scripts out there, but none 
 - [ ] CI integrations
 
 ## <a name="installation"></a>Installation
-
+If you have Go installed, you can install the cli with the following command:
 ```bash
 go install github.com/timo972/altv-cli/cmd/altv@latest
 ```
+Otherwise you can use the prebuilt binaries from github [releases]() or npm in the future.
 
 ## <a name="usage"></a>Usage
 
