@@ -1,4 +1,4 @@
-package downloader
+package vcs
 
 import (
 	"context"
@@ -18,11 +18,12 @@ import (
 )
 
 type Downloader interface {
-	AddCDN(cdn.CDN)
+	CDNRegistry
 	Download(ctx context.Context, path string) error
 }
 
 type downloader struct {
+	CDNRegistry
 	cdns    []cdn.CDN
 	path    string
 	arch    platform.Arch
@@ -30,34 +31,25 @@ type downloader struct {
 	modules []string
 }
 
-func New(path string, arch platform.Arch, branch version.Branch, modules []string) Downloader {
+func NewDownloader(path string, arch platform.Arch, branch version.Branch, modules []string, registry CDNRegistry) Downloader {
 	return &downloader{
-		path:    path,
-		arch:    arch,
-		branch:  branch,
-		modules: modules,
-		cdns:    []cdn.CDN{altcdn.Default},
+		CDNRegistry: registry,
+		path:        path,
+		arch:        arch,
+		branch:      branch,
+		modules:     modules,
+		cdns:        []cdn.CDN{altcdn.Default},
 	}
 }
 
-// getCDN returns the CDN that hosts the given module.
-func (i *downloader) moduleCDN(module string) cdn.CDN {
-	for _, cdn := range i.cdns {
-		if cdn.Has(module) {
-			return cdn
-		}
-	}
-	return nil
-}
-
-func (d *downloader) AddCDN(cdn cdn.CDN) {
-	d.cdns = append(d.cdns, cdn)
-}
-
-func (d *downloader) Download(ctx context.Context, path string) error {
+func (d *downloader) AggregateFiles() []*cdn.File {
 	allFiles := make([]*cdn.File, 0)
 	for _, module := range d.modules {
-		cdn := d.moduleCDN(module)
+		cdn, ok := d.moduleCDN(module)
+		if !ok {
+			logging.WarnLogger.Printf("no cdn for module %s found, skipping", module)
+			continue
+		}
 		logging.DebugLogger.Printf("cdn %v for module %s", cdn, module)
 
 		files, err := cdn.Files(d.branch, d.arch, module)
@@ -70,15 +62,17 @@ func (d *downloader) Download(ctx context.Context, path string) error {
 		allFiles = append(allFiles, files...)
 	}
 
-	logging.InfoLogger.Printf("downloading %d files", len(allFiles))
+	return allFiles
+}
 
+func (d *downloader) DownloadFiles(ctx context.Context, path string, files []*cdn.File) error {
 	// spin up a goroutine for each file download process
-	errs := make(chan error, len(allFiles))
-	for _, file := range allFiles {
+	errs := make(chan error, len(files))
+	for _, file := range files {
 		go downloadFile(errs, path, file)
 	}
 
-	for range allFiles {
+	for range files {
 		select {
 		case err := <-errs:
 			logging.DebugLogger.Printf("got resp: %v", err)
@@ -91,6 +85,12 @@ func (d *downloader) Download(ctx context.Context, path string) error {
 	}
 
 	return nil
+}
+
+func (d *downloader) Download(ctx context.Context, path string) error {
+	files := d.AggregateFiles()
+	logging.InfoLogger.Printf("downloading %d files", len(files))
+	return d.DownloadFiles(ctx, path, files)
 }
 
 func downloadFile(c chan error, p string, file *cdn.File) {

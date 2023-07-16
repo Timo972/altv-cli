@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"os"
@@ -11,6 +11,9 @@ var rootCmd = &cobra.Command{
 	Use:   "altv",
 	Short: "alt:V command line tool",
 	Long:  `A blazingly fast alt:V server manager cli written in go.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Usage()
+	},
 }
 
 func Execute() {

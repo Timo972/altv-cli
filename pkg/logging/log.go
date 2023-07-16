@@ -35,3 +35,10 @@ func SetDebug(debug bool) {
 		ErrLogger.SetFlags(defaultFlags)
 	}
 }
+
+func Disable() {
+	InfoLogger.SetOutput(io.Discard)
+	WarnLogger.SetOutput(io.Discard)
+	ErrLogger.SetOutput(io.Discard)
+	DebugLogger.SetOutput(io.Discard)
+}
