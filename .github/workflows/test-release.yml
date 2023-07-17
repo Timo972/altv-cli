@@ -20,7 +20,8 @@ jobs:
     name: Build ${{ matrix.os }} artifact
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -119,6 +120,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [build]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
