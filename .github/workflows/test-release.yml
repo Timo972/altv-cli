@@ -134,9 +134,6 @@ jobs:
           node-version: "16.x"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install jq
-        run: sudo apt-get install jq
-      
       - name: Extract version
         id: version
         shell: bash
