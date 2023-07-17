@@ -1,0 +1,39 @@
+{
+  "name": "altv-cli",
+  "version": "1.0.0",
+  "description": "Incredibly flexible and easy to use altv server manager. Install or update only necessary files, reducing the bandwidth usage and time spent to a minimum.",
+  "bin": {
+    "altv": "altv"
+  },
+  "scripts": {
+    "build": "tsc -p ./npm/tsconfig.json",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preuninstall": "node ./npm/dist/postinstall.js",
+    "postinstall": "node ./npm/dist/postinstall.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Timo972/altv-cli.git"
+  },
+  "keywords": [
+    "altv",
+    "server",
+    "cli"
+  ],
+  "author": "Timo972 <root@tbeck.dev>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Timo972/altv-cli/issues"
+  },
+  "homepage": "https://github.com/Timo972/altv-cli#readme",
+  "files": [
+    "altv",
+    "altv.exe",
+    "npm/dist/postinstall.js",
+    "npm/dist/preuninstall.js"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.4.2",
+    "typescript": "^5.1.6"
+  }
+}
