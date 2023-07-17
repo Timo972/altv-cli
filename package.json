@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc -p ./npm/tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "preuninstall": "node ./npm/dist/postinstall.js",
+    "preuninstall": "node ./npm/dist/preuninstall.js",
     "postinstall": "node ./npm/dist/postinstall.js"
   },
   "repository": {
