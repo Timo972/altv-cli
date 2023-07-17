@@ -1,4 +1,4 @@
-# altv cli
+# altv cli [![Test & Release](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml/badge.svg?branch=main)](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml)
 
 Incredibly flexible and easy to use altv server manager. Install or update only necessary files, reducing the bandwidth usage and time spent to a minimum.
 Supports every official module and continues working even on module file renamings by respecting their manifest.json.
