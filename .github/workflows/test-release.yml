@@ -133,13 +133,12 @@ jobs:
         with:
           node-version: "18.x"
           registry-url: "https://registry.npmjs.org"
-          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: corepack pnpm install
 
       - name: Build pre & post install scripts
-        run: pnpm run build
+        run: corepack pnpm run build
 
       - name: Extract version
         id: version
