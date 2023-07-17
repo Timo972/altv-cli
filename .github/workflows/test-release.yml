@@ -65,12 +65,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16.x'
-          registry-url: 'https://registry.npmjs.org'
-
       - name: Download windows artifacts
         uses: actions/download-artifact@v2
         with:
@@ -88,8 +82,8 @@ jobs:
         shell: bash
         run: |
           TAG=${GITHUB_REF/refs\/tags\//}
-          echo "name=TAG::${TAG}" >> $GITHUB_OUTPUT
-          echo "name=VERSION::${TAG#v}" >> $GITHUB_OUTPUT
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
@@ -120,20 +114,45 @@ jobs:
           asset_name: altv
           asset_content_type: application/octet-stream
 
-      #- name: Publish npm package
-      #  run: npm publish
-      #  env:
-      #    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish-npm:
+    name: Publish NPM Package
+    runs-on: ubuntu-22.04
+    needs: [build]
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install jq
+        run: sudo apt-get install jq
+      
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          TAG=${GITHUB_REF/refs\/tags\//}
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
+
+      - name: Set npm package version
+        run: npm version ${{ steps.version.outputs.VERSION }}
+
+      - name: Publish npm package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   delete-artifacts:
     name: Delete artifacts
     runs-on: ubuntu-18.04
-    needs: [ create-release ]
+    needs: [create-release]
     if: ${{ always() }}
     steps:
-        - name: Delete artifacts
-          uses: geekyeggo/delete-artifact@v1
-          with:
-            name: |
-                cli-ubuntu-22.04
-                cli-windows-2019
+      - name: Delete artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            cli-ubuntu-22.04
+            cli-windows-2019
