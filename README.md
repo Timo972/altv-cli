@@ -1,4 +1,4 @@
-# altv cli [![Test & Release](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml/badge.svg?branch=main)](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml)
+# altv cli [![Test & Release](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml/badge.svg?branch=main)](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml)[![License][license-src]][license-href]
 
 Incredibly flexible and easy to use altv server manager. Install or update only necessary files, reducing the bandwidth usage and time spent to a minimum.
 Supports every official module and continues working even on module file renamings by respecting their manifest.json.
@@ -19,17 +19,17 @@ There are several altv server updater libraries and scripts out there, but none 
 
 ### <a name="features"></a>Features
 
-- [x] Fast
-- [x] Flexible
-- [x] Resilient
-- [x] Supports every official module
-- [x] Supports custom modules
-- [x] Reduces bandwidth usage to a minimum
+- ⚡ &nbsp;Fast
+- 🔀 &nbsp;Flexible
+- 💎 &nbsp;Resilient
+- 🏅 &nbsp;Supports every official module
+- 🛠 &nbsp;Supports custom modules
+- 📉 &nbsp;Reduces bandwidth usage to a minimum
 
 ### <a name="planned-features"></a>Planned Features
-- [ ] Workspace configs for use of cli without having to set flags every time: `altv init -p ./server -b dev -t 30`
-- [ ] JSON configuration for cdn's
-- [ ] CI integrations
+- 🔨 &nbsp;Workspace configs for use of cli without having to set flags every time: `altv init -p ./server -b dev -t 30`
+- ⚙ &nbsp;&nbsp;JSON configuration for cdn's
+- 🤖 &nbsp;CI integrations
 
 ## <a name="installation"></a>Installation
 If you have Go installed, you can install the cli with the following command:
@@ -74,3 +74,10 @@ Example `package.json`:
 
 This way you can use `make install`, `make update` or `make verify` to install, update or verify your server files.<br />
 If you prefer using npm, you can use `npm run altv-install`, `npm run altv-update` or `npm run altv-verify` instead.<br />
+
+<!-- badges -->
+[license-src]: https://img.shields.io/npm/l/@timo792/altv-cli.svg?style=flat&colorA=18181B&colorB=28CF8D
+[license-href]: https://npmjs.com/package/@timo972/altv-cli
+
+[npm-version-src]: https://img.shields.io/npm/v/@timo792/altv-cli/latest.svg?style=flat&colorA=18181B&colorB=28CF8D
+[npm-version-href]: https://npmjs.com/package/@timo792/altv-cli
