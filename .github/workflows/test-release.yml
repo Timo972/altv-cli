@@ -146,7 +146,7 @@ jobs:
           echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Set npm package version
-        run: npm version ${{ steps.version.outputs.VERSION }}
+        run: npm version ${{ steps.version.outputs.VERSION }} --no-commit-hooks --no-git-tag-version
 
       - name: Publish npm package
         run: npm publish
