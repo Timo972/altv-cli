@@ -1,4 +1,4 @@
-# altv cli [![Test & Release](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml/badge.svg?branch=main)](https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml)[![License][license-src]][license-href]
+# altv cli [![Test & Release][actions-src]][actions-src] [![License][license-src]][license-href] [![Version][npm-version-src]][npm-version-href]
 
 Incredibly flexible and easy to use altv server manager. Install or update only necessary files, reducing the bandwidth usage and time spent to a minimum.
 Supports every official module and continues working even on module file renamings by respecting their manifest.json.
@@ -76,8 +76,11 @@ This way you can use `make install`, `make update` or `make verify` to install, 
 If you prefer using npm, you can use `npm run altv-install`, `npm run altv-update` or `npm run altv-verify` instead.<br />
 
 <!-- badges -->
-[license-src]: https://img.shields.io/npm/l/@timo792/altv-cli.svg?style=flat&colorA=18181B&colorB=28CF8D
+[license-src]: https://img.shields.io/npm/l/%40timo972%2Faltv-cli?labelColor=18181B&color=28CF8D
 [license-href]: https://npmjs.com/package/@timo972/altv-cli
 
-[npm-version-src]: https://img.shields.io/npm/v/@timo792/altv-cli/latest.svg?style=flat&colorA=18181B&colorB=28CF8D
+[npm-version-src]: https://img.shields.io/npm/v/%40timo972/altv-cli?labelColor=18181B&color=28CF8D
 [npm-version-href]: https://npmjs.com/package/@timo792/altv-cli
+
+[actions-src]: https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml/badge.svg?branch=main
+[actions-href]: https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml
