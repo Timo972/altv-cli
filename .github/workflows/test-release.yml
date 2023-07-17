@@ -149,13 +149,13 @@ jobs:
 
       - name: Publish npm package under tag
         if: steps.version.outputs.NPM_TAG != ''
-        run: npm publish --tag ${{ steps.version.outputs.NPM_TAG }}
+        run: npm publish --tag ${{ steps.version.outputs.NPM_TAG }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish npm package
         if: steps.version.outputs.NPM_TAG == ''
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
 
