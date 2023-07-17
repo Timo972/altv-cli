@@ -51,6 +51,8 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-22.04
     needs: [build]
+    permissions:
+      contents: write
     steps:
       - name: Set up Node.js
         uses: actions/setup-node@v3

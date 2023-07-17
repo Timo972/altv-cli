@@ -23,3 +23,6 @@ server
 
 # Go workspace file
 go.work
+altv
+node_modules
+dist
