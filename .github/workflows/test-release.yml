@@ -122,7 +122,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        
+
+      - name: Configure git
+        run: |
+          git config user.name Timo
+          git config user.email 44401485+Timo972@users.noreply.github.com
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
