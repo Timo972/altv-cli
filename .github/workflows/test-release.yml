@@ -139,16 +139,25 @@ jobs:
         shell: bash
         run: |
           TAG=${GITHUB_REF/refs\/tags\//}
+          TAG_REV=${TAG#*-}
           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
           echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
+          echo "NPM_TAG=${TAG_REV/.*/}" >> $GITHUB_OUTPUT
 
       - name: Set npm package version
         run: npm version ${{ steps.version.outputs.VERSION }} --no-commit-hooks --no-git-tag-version
 
-      - name: Publish npm package
-        run: npm publish
+      - name: Publish npm package under tag
+        if: steps.version.outputs.NPM_TAG != ''
+        run: npm publish --tag ${{ steps.version.outputs.NPM_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish npm package
+        if: steps.version.outputs.NPM_TAG == ''
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
 
   delete-artifacts:
     name: Delete artifacts
