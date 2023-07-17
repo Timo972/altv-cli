@@ -1,6 +1,6 @@
 {
   "name": "@timo972/altv-cli",
-  "version": "0.1.0-dev.0",
+  "version": "0.1.0-dev.10",
   "description": "Incredibly flexible and easy to use altv server manager. Install or update only necessary files, reducing the bandwidth usage and time spent to a minimum.",
   "private": false,
   "bin": {
