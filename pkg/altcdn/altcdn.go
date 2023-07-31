@@ -102,7 +102,7 @@ func (c *altCDN) Files(branch version.Branch, arch platform.Arch, module string,
 	i := 0
 	if manifest {
 		files[i] = &cdn.File{
-			Name: "update.json",
+			Name: fmt.Sprintf("%s.update.json", module),
 			Hash: "",
 			Url:  c.fileURL(branch, arch, module, "update.json"),
 		}

@@ -39,12 +39,13 @@ func NewDownloader(arch platform.Arch, branch version.Branch, modules []string, 
 	}
 }
 
+// TODO: utilize goroutines to aggregate files simultaneously
 func (d *downloader) AggregateFiles(manifests bool) []*cdn.File {
 	allFiles := make([]*cdn.File, 0)
 	for _, module := range d.modules {
 		cdn, ok := d.moduleCDN(module)
 		if !ok {
-			logging.WarnLogger.Printf("no cdn for module %s found, skipping", module)
+			logging.WarnLogger.Printf(newErrNoCDN(module).Error())
 			continue
 		}
 		logging.DebugLogger.Printf("cdn %v for module %s", cdn, module)
@@ -62,6 +63,7 @@ func (d *downloader) AggregateFiles(manifests bool) []*cdn.File {
 	return allFiles
 }
 
+// DownloadFiles downloads all files from the given slice of files to the given path concurrently
 func (d *downloader) DownloadFiles(ctx context.Context, path string, files []*cdn.File) error {
 	// spin up a goroutine for each file download process
 	errs := make(chan error, len(files))
@@ -84,12 +86,14 @@ func (d *downloader) DownloadFiles(ctx context.Context, path string, files []*cd
 	return nil
 }
 
+// Download aggregates all files from the given modules and downloads them to the given path
 func (d *downloader) Download(ctx context.Context, path string, manifests bool) error {
 	files := d.AggregateFiles(manifests)
 	logging.InfoLogger.Printf("downloading %d files", len(files))
 	return d.DownloadFiles(ctx, path, files)
 }
 
+// downloadFile is a utility to download the given file to the given path and verify its checksum
 func downloadFile(c chan error, p string, file *cdn.File) {
 	resp, err := http.DefaultClient.Get(file.Url)
 	if err != nil {

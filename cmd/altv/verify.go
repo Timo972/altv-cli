@@ -9,6 +9,8 @@ import (
 	"github.com/timo972/altv-cli/pkg/version"
 )
 
+var noUpdate bool
+
 var verifyCmd = &cobra.Command{
 	Use:     "verify",
 	Short:   "Verify alt:V server",
@@ -37,11 +39,12 @@ var verifyCmd = &cobra.Command{
 			logging.ErrLogger.Fatalln(err)
 		}
 
-		logging.InfoLogger.Println("successfully installed")
+		logging.InfoLogger.Println("server files valid")
 	},
 }
 
 func init() {
 	setFlags(verifyCmd)
+	verifyCmd.Flags().BoolVarP(&noUpdate, "no-update", "n", false, "do not check for updates, just verify files")
 	rootCmd.AddCommand(verifyCmd)
 }
