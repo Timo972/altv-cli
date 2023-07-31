@@ -1,9 +1,6 @@
 package main
 
 import (
-	"context"
-	"time"
-
 	"github.com/spf13/cobra"
 	"github.com/timo972/altv-cli/pkg/ghcdn"
 	"github.com/timo972/altv-cli/pkg/logging"
@@ -25,7 +22,7 @@ var verifyCmd = &cobra.Command{
 
 		logging.InfoLogger.Println("alt:V server verifier")
 
-		checker := vcs.NewChecker(path, platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
+		checker := vcs.NewChecker(platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
 		checker.AddCDN(ghcdn.New(ghcdn.ModuleMap{
 			"go-module": &ghcdn.Repository{
 				Owner: "timo972",
@@ -33,16 +30,10 @@ var verifyCmd = &cobra.Command{
 			},
 		}))
 
-		var ctx context.Context
-		var cancel context.CancelFunc
-		if timeout > 0 {
-			ctx, cancel = context.WithTimeout(cmd.Context(), time.Duration(timeout)*time.Second)
-		} else {
-			ctx, cancel = context.WithCancel(cmd.Context())
-		}
+		ctx, cancel := timeoutContext(cmd.Context())
 		defer cancel()
 
-		if _, err := checker.Verify(ctx); err != nil {
+		if _, err := checker.Verify(ctx, path); err != nil {
 			logging.ErrLogger.Fatalln(err)
 		}
 

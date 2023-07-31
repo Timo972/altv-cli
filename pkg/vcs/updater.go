@@ -11,30 +11,31 @@ import (
 
 type Updater interface {
 	AddCDN(cdn.CDN)
-	Update(context.Context) error
+	Update(ctx context.Context, path string) error
 }
 
 type updater struct {
 	check Checker
 	dl    Downloader
+	reg   CDNRegistry
 }
 
-func NewUpdater(path string, arch platform.Arch, branch version.Branch, modules []string, reg CDNRegistry) Updater {
+func NewUpdater(arch platform.Arch, branch version.Branch, modules []string, reg CDNRegistry) Updater {
 	u := &updater{
-		check: NewChecker(path, arch, branch, modules, reg),
-		dl:    NewDownloader(path, arch, branch, modules, reg),
+		check: NewChecker(arch, branch, modules, reg),
+		dl:    NewDownloader(arch, branch, modules, reg),
+		reg:   reg,
 	}
 
 	return u
 }
 
 func (u *updater) AddCDN(cdn cdn.CDN) {
-	u.check.AddCDN(cdn)
-	u.dl.AddCDN(cdn)
+	u.reg.AddCDN(cdn)
 }
 
-func (u *updater) Update(ctx context.Context) error {
-	status, err := u.check.Verify(ctx)
+func (u *updater) Update(ctx context.Context, path string) error {
+	status, err := u.check.Verify(ctx, path)
 	if err != nil {
 		return err
 	}

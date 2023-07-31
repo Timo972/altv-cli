@@ -1,9 +1,6 @@
 package main
 
 import (
-	"context"
-	"time"
-
 	"github.com/spf13/cobra"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
@@ -24,18 +21,12 @@ var installCmd = &cobra.Command{
 
 		logging.InfoLogger.Println("alt:V server installer")
 
-		inst := vcs.NewDownloader(path, platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
+		inst := vcs.NewDownloader(platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
 
-		var ctx context.Context
-		var cancel context.CancelFunc
-		if timeout > 0 {
-			ctx, cancel = context.WithTimeout(cmd.Context(), time.Duration(timeout)*time.Second)
-		} else {
-			ctx, cancel = context.WithCancel(cmd.Context())
-		}
+		ctx, cancel := timeoutContext(cmd.Context())
 		defer cancel()
 
-		if err := inst.Download(ctx, path); err != nil {
+		if err := inst.Download(ctx, path, manifests); err != nil {
 			logging.ErrLogger.Fatalln(err)
 		}
 

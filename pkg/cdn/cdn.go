@@ -11,7 +11,7 @@ type CDN interface {
 	// Manifest returns the manifest for the given branch, arch and module.
 	Manifest(branch version.Branch, arch platform.Arch, module string) (*Manifest, error)
 	// Files returns a list of required files for the given branch, arch and module.
-	Files(branch version.Branch, arch platform.Arch, module string) ([]*File, error)
+	Files(branch version.Branch, arch platform.Arch, module string, manifest bool) ([]*File, error)
 }
 
 type Manifest struct {

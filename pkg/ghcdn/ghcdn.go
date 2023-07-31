@@ -136,7 +136,7 @@ func (c *CDN) ExtendedManifest(branch version.Branch, arch platform.Arch, module
 	return manifest, nil
 }
 
-func (c *CDN) Files(branch version.Branch, arch platform.Arch, module string) ([]*cdn.File, error) {
+func (c *CDN) Files(branch version.Branch, arch platform.Arch, module string, manifest bool) ([]*cdn.File, error) {
 	man, err := c.ExtendedManifest(branch, arch, module)
 	if err != nil {
 		return nil, fmt.Errorf("unable to gather module files: %w", err)

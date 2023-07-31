@@ -18,23 +18,20 @@ import (
 )
 
 type Downloader interface {
-	CDNRegistry
-	Download(ctx context.Context, path string) error
+	Download(ctx context.Context, path string, manifests bool) error
 }
 
 type downloader struct {
 	CDNRegistry
 	cdns    []cdn.CDN
-	path    string
 	arch    platform.Arch
 	branch  version.Branch
 	modules []string
 }
 
-func NewDownloader(path string, arch platform.Arch, branch version.Branch, modules []string, registry CDNRegistry) Downloader {
+func NewDownloader(arch platform.Arch, branch version.Branch, modules []string, registry CDNRegistry) Downloader {
 	return &downloader{
 		CDNRegistry: registry,
-		path:        path,
 		arch:        arch,
 		branch:      branch,
 		modules:     modules,
@@ -42,7 +39,7 @@ func NewDownloader(path string, arch platform.Arch, branch version.Branch, modul
 	}
 }
 
-func (d *downloader) AggregateFiles() []*cdn.File {
+func (d *downloader) AggregateFiles(manifests bool) []*cdn.File {
 	allFiles := make([]*cdn.File, 0)
 	for _, module := range d.modules {
 		cdn, ok := d.moduleCDN(module)
@@ -52,7 +49,7 @@ func (d *downloader) AggregateFiles() []*cdn.File {
 		}
 		logging.DebugLogger.Printf("cdn %v for module %s", cdn, module)
 
-		files, err := cdn.Files(d.branch, d.arch, module)
+		files, err := cdn.Files(d.branch, d.arch, module, manifests)
 		if err != nil {
 			logging.WarnLogger.Printf("no files for module %s found, skipping: %v", module, err)
 			continue
@@ -87,8 +84,8 @@ func (d *downloader) DownloadFiles(ctx context.Context, path string, files []*cd
 	return nil
 }
 
-func (d *downloader) Download(ctx context.Context, path string) error {
-	files := d.AggregateFiles()
+func (d *downloader) Download(ctx context.Context, path string, manifests bool) error {
+	files := d.AggregateFiles(manifests)
 	logging.InfoLogger.Printf("downloading %d files", len(files))
 	return d.DownloadFiles(ctx, path, files)
 }

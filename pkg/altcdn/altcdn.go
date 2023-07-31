@@ -85,7 +85,7 @@ func (c *altCDN) fileURL(branch version.Branch, arch platform.Arch, module strin
 	return fmt.Sprintf("%s/"+c.includes[module]+"/%s", c.BaseURL, branch, arch, name)
 }
 
-func (c *altCDN) Files(branch version.Branch, arch platform.Arch, module string) ([]*cdn.File, error) {
+func (c *altCDN) Files(branch version.Branch, arch platform.Arch, module string, manifest bool) ([]*cdn.File, error) {
 	man, err := c.Manifest(branch, arch, module)
 	if err != nil {
 		return nil, fmt.Errorf("unable to gather module files: %w", err)

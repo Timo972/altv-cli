@@ -1,9 +1,6 @@
 package main
 
 import (
-	"context"
-	"time"
-
 	"github.com/spf13/cobra"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
@@ -24,18 +21,12 @@ var updateCmd = &cobra.Command{
 
 		logging.InfoLogger.Println("alt:V server updater")
 
-		upd := vcs.NewUpdater(path, platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
+		upd := vcs.NewUpdater(platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
 
-		var ctx context.Context
-		var cancel context.CancelFunc
-		if timeout > 0 {
-			ctx, cancel = context.WithTimeout(cmd.Context(), time.Duration(timeout)*time.Second)
-		} else {
-			ctx, cancel = context.WithCancel(cmd.Context())
-		}
+		ctx, cancel := timeoutContext(cmd.Context())
 		defer cancel()
 
-		if err := upd.Update(ctx); err != nil {
+		if err := upd.Update(ctx, path); err != nil {
 			logging.ErrLogger.Fatalln(err)
 		}
 
