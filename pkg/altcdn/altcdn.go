@@ -93,8 +93,22 @@ func (c *altCDN) Files(branch version.Branch, arch platform.Arch, module string,
 
 	logging.DebugLogger.Println("got manifest")
 
-	files := make([]*cdn.File, len(man.HashList))
+	fileCount := len(man.HashList)
+	if manifest {
+		fileCount++
+	}
+
+	files := make([]*cdn.File, fileCount)
 	i := 0
+	if manifest {
+		files[i] = &cdn.File{
+			Name: "update.json",
+			Hash: "",
+			Url:  c.fileURL(branch, arch, module, "update.json"),
+		}
+		i++
+	}
+
 	for name, hash := range man.HashList {
 		logging.DebugLogger.Printf("adding file %s", name)
 		files[i] = &cdn.File{
