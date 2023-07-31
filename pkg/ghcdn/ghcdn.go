@@ -149,6 +149,7 @@ func (c *CDN) Files(branch version.Branch, arch platform.Arch, module string, ma
 	for name, hash := range man.HashList {
 		logging.DebugLogger.Printf("adding file %s", name)
 		files[i] = &cdn.File{
+			Type: cdn.ModuleFile,
 			Name: name,
 			Hash: hash,
 			Url:  man.Assets[name].GetBrowserDownloadURL(),

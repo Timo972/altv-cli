@@ -139,7 +139,9 @@ func downloadFile(c chan error, p string, file *cdn.File) {
 	logging.DebugLogger.Printf("wrote file %s, checking checksum", file.Name)
 
 	if file.Hash == "" {
-		logging.WarnLogger.Printf("no checksum for %s, be careful!", file.Name)
+		if file.Type != cdn.ModuleManifestFile {
+			logging.WarnLogger.Printf("no checksum for %s, be careful!", file.Name)
+		}
 		c <- nil
 		return
 	}

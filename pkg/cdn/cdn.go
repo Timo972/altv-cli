@@ -1,8 +1,17 @@
 package cdn
 
 import (
+	"io"
+
 	"github.com/timo972/altv-cli/pkg/platform"
 	"github.com/timo972/altv-cli/pkg/version"
+)
+
+type FileType uint8
+
+const (
+	ModuleFile FileType = iota
+	ModuleManifestFile
 )
 
 type CDN interface {
@@ -22,7 +31,13 @@ type Manifest struct {
 }
 
 type File struct {
+	Type FileType
 	Name string
 	Url  string
 	Hash string
+}
+
+type BuiltFile struct {
+	Name    string
+	Content io.Reader
 }
