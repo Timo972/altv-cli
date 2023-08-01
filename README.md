@@ -8,6 +8,7 @@ Extendable to support custom modules, feel free to open a pull request to add co
 - [Motivation](#motivation)
     - [Features](#features)
     - [Planned Features](#planned-features)
+    - [Supported Modules](#supported-modules)
 - [Installation](#installation)
 - [Usage](#usage)
     - [Example Makefile](#makefile)
@@ -30,6 +31,19 @@ There are several altv server updater libraries and scripts out there, but none 
 - 🔨 &nbsp;Workspace configs for use of cli without having to set flags every time: `altv init -p ./server -b dev -t 30`
 - ⚙ &nbsp;&nbsp;JSON configuration for cdn's
 - 🤖 &nbsp;CI integrations
+
+### <a name="supported-modules"></a>Supported Modules
+- ✅ &nbsp;alt:V Server (server)
+- ✅ &nbsp;alt:V Server Data (data-files)
+- ✅ &nbsp;JS Module v1 (js-module)
+- ✅ &nbsp;JS Bytecode Module (js-bytecode-module)
+- ✅ &nbsp;C# Module (csharp-module)
+- 🚧 &nbsp;alt:V Voice (voice)
+- 🚧 &nbsp;JS Module v2 (js-module-v2)
+- ⚠️ &nbsp;Go Module (go-module)
+> Go Module uses experimental custom github cdn provider. No checksum support.
+
+
 
 ## <a name="installation"></a>Installation
 If you have Go installed, you can install the cli with the following command:
