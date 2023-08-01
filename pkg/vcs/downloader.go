@@ -154,5 +154,7 @@ func downloadFile(c chan error, p string, file *cdn.File) {
 
 	logging.DebugLogger.Printf("checksum for %s is ok", file.Name)
 
+	// TODO: if file.Name HasSuffix(".zip") extract zip to file parent dir
+
 	c <- nil
 }
