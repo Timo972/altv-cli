@@ -36,6 +36,17 @@ func (a Arch) String() string {
 	return string(a)
 }
 
+func (a Arch) OS() string {
+	switch a {
+	case ArchLinux:
+		return "linux"
+	case ArchWin32:
+		return "windows"
+	default:
+		return runtime.GOOS
+	}
+}
+
 func Platform() Arch {
 	switch os := runtime.GOOS; os {
 	case "windows":

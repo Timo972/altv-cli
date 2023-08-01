@@ -49,7 +49,8 @@ func releaseFilter(branch version.Branch, arch platform.Arch, releases []*github
 func assetFilter(branch version.Branch, arch platform.Arch, assets []*github.ReleaseAsset) ([]*github.ReleaseAsset, error) {
 	passets := make([]*github.ReleaseAsset, 0)
 	for _, asset := range assets {
-		if !strings.Contains(asset.GetName(), arch.String()) {
+		if !strings.Contains(asset.GetName(), arch.OS()) {
+			logging.DebugLogger.Printf("asset %s does not contain %s", asset.GetName(), arch.OS())
 			continue
 		}
 
@@ -66,12 +67,14 @@ func manifestBuilder(branch version.Branch, arch platform.Arch, release *github.
 		HashList:    map[string]string{},
 		SizeList:    map[string]int{},
 	}
+	urls := map[string]string{}
 
 	for _, asset := range assets {
 		fp := fmt.Sprintf("modules/js-module-v2/%s", asset.GetName())
 		manifest.HashList[fp] = ""
 		manifest.SizeList[fp] = asset.GetSize()
+		urls[fp] = asset.GetBrowserDownloadURL()
 	}
 
-	return manifest, nil, nil
+	return manifest, urls, nil
 }

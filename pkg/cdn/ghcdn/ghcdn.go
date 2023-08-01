@@ -36,8 +36,6 @@ type ExtendedManifest struct {
 
 type ModuleMap map[string]*Repository
 
-var Default cdn.CDN = New(nil)
-
 func New(modules ModuleMap) *CDN {
 	return &CDN{
 		modules: modules,

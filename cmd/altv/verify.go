@@ -5,9 +5,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/timo972/altv-cli/pkg/cdn/ghcdn"
-	"github.com/timo972/altv-cli/pkg/cdn/ghcdn/gomodule"
-	"github.com/timo972/altv-cli/pkg/cdn/ghcdn/jsmodulev2"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
 	"github.com/timo972/altv-cli/pkg/vcs"
@@ -29,11 +26,8 @@ var verifyCmd = &cobra.Command{
 
 		logging.InfoLogger.Println("alt:V server verifier")
 
+		experimentalGithubCDN()
 		checker := vcs.NewChecker(platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
-		checker.AddCDN(ghcdn.New(ghcdn.ModuleMap{
-			"go-module":    gomodule.New(),
-			"js-module-v2": jsmodulev2.New(),
-		}))
 
 		ctx, cancel := timeoutContext(cmd.Context())
 		defer cancel()

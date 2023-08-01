@@ -64,12 +64,14 @@ func manifestBuilder(branch version.Branch, arch platform.Arch, release *github.
 		HashList:    map[string]string{},
 		SizeList:    map[string]int{},
 	}
+	urls := map[string]string{}
 
 	for _, asset := range assets {
 		fp := fmt.Sprintf("modules/go-module/%s", asset.GetName())
 		manifest.HashList[fp] = ""
 		manifest.SizeList[fp] = asset.GetSize()
+		urls[fp] = asset.GetBrowserDownloadURL()
 	}
 
-	return manifest, nil, nil
+	return manifest, urls, nil
 }

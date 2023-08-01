@@ -3,10 +3,9 @@ package vcs
 import (
 	"github.com/timo972/altv-cli/pkg/cdn"
 	"github.com/timo972/altv-cli/pkg/cdn/altcdn"
-	"github.com/timo972/altv-cli/pkg/cdn/ghcdn"
 )
 
-var DefaultRegistry CDNRegistry = NewRegistry(altcdn.Default, ghcdn.Default)
+var DefaultRegistry CDNRegistry = NewRegistry(altcdn.Default)
 
 type CDNRegistry interface {
 	AddCDN(cdn.CDN)

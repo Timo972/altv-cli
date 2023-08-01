@@ -21,6 +21,7 @@ var updateCmd = &cobra.Command{
 
 		logging.InfoLogger.Println("alt:V server updater")
 
+		experimentalGithubCDN()
 		upd := vcs.NewUpdater(platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
 
 		ctx, cancel := timeoutContext(cmd.Context())

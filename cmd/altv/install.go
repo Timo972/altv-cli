@@ -21,6 +21,7 @@ var installCmd = &cobra.Command{
 
 		logging.InfoLogger.Println("alt:V server installer")
 
+		experimentalGithubCDN()
 		inst := vcs.NewDownloader(platform.Arch(arch), version.Branch(branch), modules, vcs.DefaultRegistry)
 
 		ctx, cancel := timeoutContext(cmd.Context())
