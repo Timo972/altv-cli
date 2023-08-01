@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/timo972/altv-cli/pkg/ghcdn"
+	"github.com/timo972/altv-cli/pkg/cdn/ghcdn"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
 	"github.com/timo972/altv-cli/pkg/vcs"

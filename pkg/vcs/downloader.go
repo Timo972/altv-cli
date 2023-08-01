@@ -10,8 +10,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/timo972/altv-cli/pkg/altcdn"
 	"github.com/timo972/altv-cli/pkg/cdn"
+	"github.com/timo972/altv-cli/pkg/cdn/altcdn"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
 	"github.com/timo972/altv-cli/pkg/version"

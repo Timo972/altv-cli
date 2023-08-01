@@ -1,9 +1,9 @@
 package vcs
 
 import (
-	"github.com/timo972/altv-cli/pkg/altcdn"
 	"github.com/timo972/altv-cli/pkg/cdn"
-	"github.com/timo972/altv-cli/pkg/ghcdn"
+	"github.com/timo972/altv-cli/pkg/cdn/altcdn"
+	"github.com/timo972/altv-cli/pkg/cdn/ghcdn"
 )
 
 var DefaultRegistry CDNRegistry = NewRegistry(altcdn.Default, ghcdn.Default)
