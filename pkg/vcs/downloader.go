@@ -120,7 +120,7 @@ func downloadFile(c chan error, p string, file *cdn.File) {
 		}
 	}
 
-	f, err := os.OpenFile(fmt.Sprintf("%s/%s", p, file.Name), os.O_CREATE|os.O_RDWR, 0644)
+	f, err := os.OpenFile(fmt.Sprintf("%s/%s", p, file.Name), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		c <- fmt.Errorf("can not open file %s: %w", file.Name, err)
 		return
