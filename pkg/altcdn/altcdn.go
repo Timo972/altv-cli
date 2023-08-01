@@ -25,6 +25,7 @@ var DefaultModules = ModuleMap{
 	"js-module":          "js-module/%s/%s",
 	"csharp-module":      `coreclr-module/%s/%s`,
 	"js-bytecode-module": `js-bytecode-module/%s/%s`,
+	"voice":              "voice-server/%s/%s",
 }
 
 var Default cdn.CDN = &altCDN{
