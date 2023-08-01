@@ -23,9 +23,13 @@ func setFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&path, "path", "p", ".", "server installation path")
 	cmd.Flags().StringArrayVarP(&modules, "modules", "m", []string{"server"}, "server components to install")
 	cmd.Flags().IntVarP(&timeout, "timeout", "t", -1, "server download timeout (in seconds)")
+	cmd.Flags().BoolVarP(&manifests, "manifests", "M", false, "download manifests for all modules, useful to verify server files later on")
+	setLogFlags(cmd)
+}
+
+func setLogFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug logging")
 	cmd.Flags().BoolVarP(&silent, "silent", "s", false, "disable logging (except errors)")
-	cmd.Flags().BoolVarP(&manifests, "manifests", "M", false, "download manifests for all modules, useful to verify server files later on")
 }
 
 func timeoutContext(ctx context.Context) (context.Context, context.CancelFunc) {

@@ -160,7 +160,7 @@ func (c *checker) verifyWithManifest(path string, man *extManifest) (ModuleStatu
 	// logging.DebugLogger.Printf("verify using manifest: %+v", man)
 	status := StatusValid
 	for fname, fhash := range man.HashList {
-		if err := verifyFileChecksum(path, fname, fhash, man.SizeList[fname]); err != nil {
+		if err := VerifyFileChecksum(path, fname, fhash, man.SizeList[fname]); err != nil {
 			status = StatusInvalid
 		}
 	}
@@ -292,6 +292,7 @@ func (c *checker) Verify(ctx context.Context, path string, remote bool) (ModuleS
 					result[mod] = lstat.Merge(rstat)
 				}
 			} else {
+				logging.DebugLogger.Printf("no remote status for %s", mod)
 				result[mod] = lstat
 			}
 		}
@@ -304,7 +305,7 @@ func (c *checker) Verify(ctx context.Context, path string, remote bool) (ModuleS
 	}
 }
 
-func verifyFileChecksum(path, fname, fhash string, fsize int) error {
+func VerifyFileChecksum(path, fname, fhash string, fsize int) error {
 	fpath := fmt.Sprintf("%s/%s", path, fname)
 	logging.DebugLogger.Printf("verifying file: %s", fpath)
 	file, err := os.OpenFile(fpath, os.O_RDONLY, 0644)
@@ -324,6 +325,10 @@ func verifyFileChecksum(path, fname, fhash string, fsize int) error {
 	if checksum != fhash {
 		logging.DebugLogger.Printf("checksum missmatch for %s: expected %s, got %s", fpath, fhash, checksum)
 		return fmt.Errorf("checksum missmatch for %s: expected %s, got %s", fpath, fhash, checksum)
+	}
+
+	if fsize < 0 {
+		return nil
 	}
 
 	stat, err := file.Stat()

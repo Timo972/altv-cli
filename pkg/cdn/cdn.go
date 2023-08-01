@@ -28,6 +28,7 @@ type Manifest struct {
 	Version     string            `json:"version"`
 	HashList    map[string]string `json:"hashList"`
 	SizeList    map[string]int    `json:"sizeList"`
+	SDKVersion  string            `json:"sdkVersion"`
 }
 
 type File struct {
