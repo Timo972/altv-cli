@@ -3,14 +3,12 @@ package ghcdn
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/google/go-github/v53/github"
 	"github.com/timo972/altv-cli/pkg/cdn"
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
 	"github.com/timo972/altv-cli/pkg/version"
-	"golang.org/x/exp/slices"
 )
 
 type CDN struct {
@@ -18,9 +16,17 @@ type CDN struct {
 	client  *github.Client
 }
 
+type ReleaseFilter func(version.Branch, platform.Arch, []*github.RepositoryRelease) (*github.RepositoryRelease, error)
+type AssetFilter func(version.Branch, platform.Arch, []*github.ReleaseAsset) ([]*github.ReleaseAsset, error)
+type DownloadURLMap map[string]string
+type ManifestBuilder func(version.Branch, platform.Arch, *github.RepositoryRelease, []*github.ReleaseAsset) (*cdn.Manifest, DownloadURLMap, error)
+
 type Repository struct {
-	Name  string
-	Owner string
+	Name            string
+	Owner           string
+	ReleaseFilter   ReleaseFilter
+	AssetFilter     AssetFilter
+	ManifestBuilder ManifestBuilder
 }
 
 type ExtendedManifest struct {
@@ -39,6 +45,16 @@ func New(modules ModuleMap) *CDN {
 	}
 }
 
+func NewRepo(owner string, name string, releaseFilter ReleaseFilter, assetFilter AssetFilter, manBuilder ManifestBuilder) *Repository {
+	return &Repository{
+		Name:            name,
+		Owner:           owner,
+		ReleaseFilter:   releaseFilter,
+		AssetFilter:     assetFilter,
+		ManifestBuilder: manBuilder,
+	}
+}
+
 func (c *CDN) Has(module string) bool {
 	_, ok := c.modules[module]
 	return ok
@@ -48,98 +64,41 @@ func (c *CDN) Repo(module string) *Repository {
 	return c.modules[module]
 }
 
-func (c *CDN) matchingRelease(branch version.Branch, arch platform.Arch, module string) (*github.RepositoryRelease, error) {
+func (c *CDN) matchingRelease(branch version.Branch, arch platform.Arch, module string) (*Repository, *github.RepositoryRelease, error) {
 	repo := c.Repo(module)
 	releases, _, err := c.client.Repositories.ListReleases(context.Background(), repo.Owner, repo.Name, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	logging.DebugLogger.Printf("found %d releases", len(releases))
 
-	// sort releases by creation date, latest -> oldest
-	slices.SortFunc[*github.RepositoryRelease](releases, func(a, b *github.RepositoryRelease) bool {
-		// checks wether release a was created before release b
-		return a.GetCreatedAt().Before(b.GetCreatedAt().Time)
-	})
+	release, err := repo.ReleaseFilter(branch, arch, releases)
+	return repo, release, err
+}
 
-	var target *github.RepositoryRelease
-	// TODO: search for release matching branch
-	for _, release := range releases {
-		logging.DebugLogger.Printf(release.GetName())
-		if strings.Contains(release.GetName(), branch.String()) {
-			target = release
-		}
+func (c *CDN) buildManifest(branch version.Branch, arch platform.Arch, module string) (*cdn.Manifest, DownloadURLMap, error) {
+	repo, target, err := c.matchingRelease(branch, arch, module)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if target == nil {
-		return nil, fmt.Errorf("no release for branch %s found", branch)
+	assets, err := repo.AssetFilter(branch, arch, target.Assets)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return target, nil
+	return repo.ManifestBuilder(branch, arch, target, assets)
 }
 
 func (c *CDN) Manifest(branch version.Branch, arch platform.Arch, module string) (*cdn.Manifest, error) {
-	target, err := c.matchingRelease(branch, arch, module)
-	if err != nil {
-		return nil, err
-	}
-
-	manifest := &cdn.Manifest{
-		BuildNumber: -1,
-		Version:     target.GetTagName(),
-		HashList:    map[string]string{},
-		SizeList:    map[string]int{},
-	}
-
-	for _, asset := range target.Assets {
-		logging.DebugLogger.Printf(asset.GetName())
-		if !strings.HasSuffix(asset.GetName(), arch.SharedLibExt()) {
-			continue
-		}
-
-		fp := fmt.Sprintf("modules/go-module/%s", asset.GetName())
-		manifest.HashList[fp] = "n/a"
-		manifest.SizeList[fp] = asset.GetSize()
-	}
-
-	return manifest, nil
-}
-
-func (c *CDN) ExtendedManifest(branch version.Branch, arch platform.Arch, module string) (*ExtendedManifest, error) {
-	target, err := c.matchingRelease(branch, arch, module)
-	if err != nil {
-		return nil, err
-	}
-
-	manifest := &ExtendedManifest{
-		Manifest: &cdn.Manifest{
-			BuildNumber: -1,
-			Version:     target.GetTagName(),
-			HashList:    map[string]string{},
-			SizeList:    map[string]int{},
-		},
-		Assets: map[string]*github.ReleaseAsset{},
-	}
-
-	for _, asset := range target.Assets {
-		logging.DebugLogger.Printf(asset.GetName())
-		if !strings.HasSuffix(asset.GetName(), arch.SharedLibExt()) {
-			continue
-		}
-
-		fp := fmt.Sprintf("modules/go-module/%s", asset.GetName())
-		manifest.HashList[fp] = ""
-		manifest.SizeList[fp] = asset.GetSize()
-		manifest.Assets[fp] = asset
-	}
-
-	return manifest, nil
+	manifest, _, err := c.buildManifest(branch, arch, module)
+	return manifest, err
 }
 
 func (c *CDN) Files(branch version.Branch, arch platform.Arch, module string, manifest bool) ([]*cdn.File, error) {
-	man, err := c.ExtendedManifest(branch, arch, module)
+	man, urls, err := c.buildManifest(branch, arch, module)
 	if err != nil {
-		return nil, fmt.Errorf("unable to gather module files: %w", err)
+		return nil, fmt.Errorf("unable to build module manifest (github): %w", err)
 	}
 
 	logging.DebugLogger.Println("got manifest")
@@ -152,7 +111,7 @@ func (c *CDN) Files(branch version.Branch, arch platform.Arch, module string, ma
 			Type: cdn.ModuleFile,
 			Name: name,
 			Hash: hash,
-			Url:  man.Assets[name].GetBrowserDownloadURL(),
+			Url:  urls[name],
 		}
 		i++
 	}
