@@ -35,7 +35,7 @@ func (u *updater) AddCDN(cdn cdn.CDN) {
 }
 
 func (u *updater) Update(ctx context.Context, path string) error {
-	status, err := u.check.Verify(ctx, path)
+	status, err := u.check.Verify(ctx, path, true)
 	if err != nil {
 		return err
 	}

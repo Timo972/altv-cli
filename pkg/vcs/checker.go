@@ -2,8 +2,12 @@ package vcs
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -15,14 +19,51 @@ import (
 	"github.com/timo972/altv-cli/pkg/version"
 )
 
-type ModuleStatus struct{}
-type ModuleManifest struct {
+type ModuleStatus uint8
+
+const (
+	StatusValidUpgradable ModuleStatus = iota
+	StatusInvalidUpgradable
+	StatusValidUpToDate
+	StatusInvalidUpToDate
+	StatusInvalid
+	StatusValid
+	StatusUpToDate
+	StatusUpgradable
+)
+
+func (status ModuleStatus) Merge(status2 ModuleStatus) ModuleStatus {
+	switch true {
+	case status == StatusUpToDate && status2 == StatusValid:
+		fallthrough
+	case status == StatusValid && status2 == StatusUpToDate:
+		return StatusValidUpToDate
+	case status == StatusUpToDate && status2 == StatusInvalid:
+		fallthrough
+	case status == StatusInvalid && status2 == StatusUpToDate:
+		return StatusInvalidUpToDate
+	case status == StatusUpgradable && status2 == StatusValid:
+		fallthrough
+	case status == StatusValid && status2 == StatusUpgradable:
+		return StatusValidUpgradable
+	case status == StatusUpgradable && status2 == StatusInvalid:
+		fallthrough
+	case status == StatusInvalid && status2 == StatusUpgradable:
+		return StatusInvalidUpgradable
+	default:
+		return status
+	}
+}
+
+type ModuleStatusResult map[string]ModuleStatus
+
+type extManifest struct {
 	*cdn.Manifest
-	Mod string
+	mod string
 }
 
 type Checker interface {
-	Verify(ctx context.Context, path string) ([]*ModuleStatus, error)
+	Verify(ctx context.Context, path string, remote bool) (ModuleStatusResult, error)
 	AddCDN(cdn.CDN)
 }
 
@@ -43,8 +84,8 @@ func NewChecker(arch platform.Arch, branch version.Branch, modules []string, reg
 }
 
 // TODO: utilize goroutines to aggregate manifests simultaneously
-func (c *checker) AggregateRemoteManifests() ([]*ModuleManifest, error) {
-	allMans := make([]*ModuleManifest, 0)
+func (c *checker) aggregateRemoteManifests() ([]*extManifest, error) {
+	allMans := make([]*extManifest, 0)
 	errs := make([]error, 0)
 	for _, mod := range c.modules {
 		cdn, ok := c.moduleCDN(mod)
@@ -65,16 +106,18 @@ func (c *checker) AggregateRemoteManifests() ([]*ModuleManifest, error) {
 		}
 
 		logging.DebugLogger.Printf("got manifest for module %s", mod)
-		allMans = append(allMans, &ModuleManifest{
+		allMans = append(allMans, &extManifest{
 			Manifest: man,
-			Mod:      mod,
+			mod:      mod,
 		})
 	}
 	return allMans, errors.Join(errs...)
 }
 
-func (c *checker) AggregateLocalManifests(path string) ([]*ModuleManifest, error) {
-	mans := make([]*ModuleManifest, 0)
+func (c *checker) aggregateLocalManifests(path string) ([]*extManifest, []string, error) {
+	mans := make([]*extManifest, 0)
+	mods := make([]string, 0)
+
 	err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -101,45 +144,197 @@ func (c *checker) AggregateLocalManifests(path string) ([]*ModuleManifest, error
 			return err
 		}
 
-		mans = append(mans, &ModuleManifest{
-			Mod: strings.TrimSuffix(d.Name(), ".update.json"),
+		mod := strings.TrimSuffix(d.Name(), ".update.json")
+		mans = append(mans, &extManifest{
+			Manifest: &man,
+			mod:      mod,
 		})
-
+		mods = append(mods, mod)
 		return nil
 	})
-	return mans, err
+
+	return mans, mods, err
 }
 
-func (c *checker) CheckManifest(man *ModuleManifest) (*ModuleStatus, error) {
-	return nil, nil
+func (c *checker) verifyWithManifest(path string, man *extManifest) (ModuleStatus, error) {
+	// logging.DebugLogger.Printf("verify using manifest: %+v", man)
+	status := StatusValid
+	for fname, fhash := range man.HashList {
+		if err := verifyFileChecksum(path, fname, fhash, man.SizeList[fname]); err != nil {
+			status = StatusInvalid
+		}
+	}
+	return status, nil
 }
 
-func (c *checker) Verify(ctx context.Context, path string) ([]*ModuleStatus, error) {
-	lmans, err := c.AggregateLocalManifests(path)
+type moduleStatusResp struct {
+	err  error
+	stat ModuleStatus
+	mod  string
+}
+
+func (c *checker) verifyWithManifests(ctx context.Context, path string, mans []*extManifest) (ModuleStatusResult, error) {
+	msrch := make(chan *moduleStatusResp, len(mans))
+	for i, man := range mans {
+		go func(man *extManifest, i int) {
+			logging.DebugLogger.Printf("start module verify: %s", c.modules[i])
+			stat, err := c.verifyWithManifest(path, man)
+			logging.DebugLogger.Printf("got module status: %s %+v", c.modules[i], stat)
+			msrch <- &moduleStatusResp{
+				stat: stat,
+				err:  err,
+				mod:  man.mod,
+			}
+		}(man, i)
+	}
+
+	var err error
+	i := 0
+	msrs := ModuleStatusResult{}
+	for {
+		if i >= len(mans) {
+			logging.DebugLogger.Printf("%d manifests done!", len(mans))
+			break
+		}
+
+		select {
+		case msr := <-msrch:
+			logging.DebugLogger.Printf("received module status: %d %+v", i, msr)
+			if msr.err != nil && err != nil {
+				err = errors.Join(err, msr.err)
+			} else if msr.err != nil {
+				err = msr.err
+			}
+
+			msrs[msr.mod] = msr.stat
+			i++
+		case <-ctx.Done():
+			return msrs, fmt.Errorf("verify canceled by context: %w", ctx.Err())
+		}
+	}
+
+	return msrs, err
+}
+
+// func (c *checker) processLocalManifests(ctx context.Context, path string, mans []*extManifest) (ModuleStatusResult, error) {
+// 	status, err := c.verifyWithManifests(ctx, path, mans)
+// 	if err != nil {
+// 		logging.WarnLogger.Printf("encountered errors while checking using local manifests: %v", err)
+// 	}
+// 	logging.DebugLogger.Printf("all module status: %+v", status)
+// 	return status, err
+// }
+
+// func (c *checker) processRemoteManifests(ctx context.Context, path string, rmans []*extManifest) (ModuleStatusResult, error) {
+// 	status, err := c.verifyWithManifests(ctx, path, rmans)
+// 	return nil, nil
+// }
+
+func (c *checker) Verify(ctx context.Context, path string, remote bool) (ModuleStatusResult, error) {
+	lmans, mods, err := c.aggregateLocalManifests(path)
 	if err != nil && len(lmans) < 1 {
 		return nil, err
 	} else if err != nil {
 		logging.WarnLogger.Printf("encountered errors while looking for local module manifests: %v", err)
 	}
 
+	lmansFound := len(lmans) > 0
+	if lmansFound {
+		c.modules = mods
+	}
+
 	logging.DebugLogger.Printf("got %d local manifests", len(lmans))
-	if len(lmans) > 0 {
-		// TODO: check local files against local manifests
+
+	// logic:
+	// if no local manifests are found and remote = false: throw error
+	// if local manifests are found and remote = false: only check with local
+	// if local manifests are found and remote = true: first check with local, then for updates using remote
+	// if no local manifests are found and remote = true: check with remote
+
+	var rmans []*extManifest
+	if remote {
+		rmans, err = c.aggregateRemoteManifests()
+		if err != nil && len(rmans) < 1 {
+			return nil, err
+		} else if err != nil {
+			logging.WarnLogger.Printf("encountered errors while looking for remote module manifests: %v", err)
+		}
 	}
 
-	// get remote manifests
-	mans, err := c.AggregateRemoteManifests()
-	if err != nil && len(mans) < 1 {
-		return nil, err
-	} else if err != nil {
-		logging.WarnLogger.Printf("encountered errors while looking for remote module manifests: %v", err)
-	}
+	switch true {
+	case !lmansFound && !remote:
+		return nil, fmt.Errorf("unable to verify files: no local manifests found and not allowed to fetch remote manifests")
+	case lmansFound && !remote:
+		return c.verifyWithManifests(ctx, path, lmans)
+	case lmansFound && remote:
+		logging.DebugLogger.Printf("checking local and remote manifests")
+		lstatus, lerr := c.verifyWithManifests(ctx, path, lmans)
+		if lerr != nil {
+			err = errors.Join(err, lerr)
+		}
+		logging.DebugLogger.Printf("local manifests done!")
 
-	if len(mans) > 0 {
-		// TODO: check local files against remote manifests
-	}
+		rstatus, rerr := c.verifyWithManifests(ctx, path, rmans)
+		if rerr != nil {
+			err = errors.Join(err, rerr)
+		}
+		logging.DebugLogger.Printf("remote manifests done!")
 
-	return nil, nil
+		result := ModuleStatusResult{}
+		for mod, lstat := range lstatus {
+			if rstat, ok := rstatus[mod]; ok {
+				switch rstat {
+				case StatusInvalid:
+					result[mod] = lstat.Merge(StatusUpgradable)
+				case StatusValid:
+					result[mod] = lstat.Merge(StatusUpToDate)
+				default:
+					result[mod] = lstat.Merge(rstat)
+				}
+			} else {
+				result[mod] = lstat
+			}
+		}
+		logging.DebugLogger.Printf("merged status!")
+		return result, err
+	case !lmansFound && remote:
+		return c.verifyWithManifests(ctx, path, rmans)
+	default:
+		return nil, fmt.Errorf("unexpected switch case")
+	}
 }
 
-// func checkFile()
+func verifyFileChecksum(path, fname, fhash string, fsize int) error {
+	fpath := fmt.Sprintf("%s/%s", path, fname)
+	logging.DebugLogger.Printf("verifying file: %s", fpath)
+	file, err := os.OpenFile(fpath, os.O_RDONLY, 0644)
+	if err != nil {
+		logging.DebugLogger.Printf("error while verifying file: could not open %s", fpath)
+		return err
+	}
+	defer file.Close()
+
+	h := sha1.New()
+	if _, err := io.Copy(h, file); err != nil {
+		logging.DebugLogger.Printf("error while verifying file: could hash contents of %s", fpath)
+		return err
+	}
+
+	checksum := hex.EncodeToString((h.Sum(nil)))
+	if checksum != fhash {
+		logging.DebugLogger.Printf("checksum missmatch for %s: expected %s, got %s", fpath, fhash, checksum)
+		return fmt.Errorf("checksum missmatch for %s: expected %s, got %s", fpath, fhash, checksum)
+	}
+
+	stat, err := file.Stat()
+	if err != nil {
+		logging.DebugLogger.Printf("file size read errpr for %s", fpath)
+		return err
+	}
+	if stat.Size() != int64(fsize) {
+		logging.DebugLogger.Printf("file size missmatch for %s: expected %d, got %d", fpath, fsize, stat.Size())
+		return fmt.Errorf("file size missmatch for %s: expected %d, got %d", fpath, fsize, stat.Size())
+	}
+
+	return nil
+}
