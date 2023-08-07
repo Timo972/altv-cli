@@ -1,6 +1,6 @@
 # altv cli [![Test & Release][actions-src]][actions-src] [![License][license-src]][license-href] [![Version][npm-version-src]][npm-version-href]
 
-⚠️ Not production ready yet! This cli is very experimental and has not reached its full potential of features and speed yet.
+> ⚠️ &nbsp;Not production ready yet! This cli is very experimental and has not reached a stable release yet.
 
 Incredibly flexible and easy to use altv server manager. Install or update only necessary files, reducing the bandwidth usage and time spent to a minimum.
 Supports every official module and continues working even on module file renamings by respecting their manifest.json.
