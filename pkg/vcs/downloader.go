@@ -1,6 +1,7 @@
 package vcs
 
 import (
+	"archive/zip"
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
@@ -9,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/timo972/altv-cli/pkg/cdn"
 	"github.com/timo972/altv-cli/pkg/cdn/altcdn"
@@ -154,7 +157,43 @@ func downloadFile(c chan error, p string, file *cdn.File) {
 
 	logging.DebugLogger.Printf("checksum for %s is ok", file.Name)
 
-	// TODO: if file.Name HasSuffix(".zip") extract zip to file parent dir
+	stat, err := f.Stat()
+	if err != nil {
+		logging.DebugLogger.Printf("file size read errpr for %s", f.Name())
+		c <- err
+		return
+	}
 
-	c <- nil
+	if !strings.HasSuffix(f.Name(), ".zip") {
+		c <- nil
+		return
+	}
+
+	archive, err := zip.NewReader(f, stat.Size())
+	if err != nil {
+		c <- fmt.Errorf("failed to unzip file %s: %w", f.Name(), err)
+		return
+	}
+
+	for _, f := range archive.File {
+		filePath := filepath.Join(fol, f.Name)
+		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			logging.WarnLogger.Printf("could not unzip %s", filePath)
+			continue
+		}
+		defer dstFile.Close()
+
+		fileReader, err := f.Open()
+		if err != nil {
+			logging.WarnLogger.Printf("could not open fileReader: %v", err)
+			continue
+		}
+		defer fileReader.Close()
+
+		if _, err := io.Copy(dstFile, fileReader); err != nil {
+			logging.WarnLogger.Printf("could not copy zip content: %v", err)
+			continue
+		}
+	}
 }
