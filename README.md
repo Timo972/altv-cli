@@ -1,18 +1,21 @@
 # altv cli [![Test & Release][actions-src]][actions-src] [![License][license-src]][license-href] [![Version][npm-version-src]][npm-version-href]
 
+⚠️ Not production ready yet! This cli is very experimental and has not reached its full potential of features and speed yet.
+
 Incredibly flexible and easy to use altv server manager. Install or update only necessary files, reducing the bandwidth usage and time spent to a minimum.
 Supports every official module and continues working even on module file renamings by respecting their manifest.json.
 Extendable to support custom modules, feel free to open a pull request to add compatibility.
 
 ## Table of Contents
+
 - [Motivation](#motivation)
-    - [Features](#features)
-    - [Planned Features](#planned-features)
-    - [Supported Modules](#supported-modules)
+  - [Features](#features)
+  - [Planned Features](#planned-features)
+  - [Supported Modules](#supported-modules)
 - [Installation](#installation)
 - [Usage](#usage)
-    - [Example Makefile](#makefile)
-    - [Example package.json](#packagejson)
+  - [Example Makefile](#makefile)
+  - [Example package.json](#packagejson)
 
 ## <a name="motivation"></a>Motivation
 
@@ -28,11 +31,13 @@ There are several altv server updater libraries and scripts out there, but none 
 - 📉 &nbsp;Reduces bandwidth usage to a minimum
 
 ### <a name="planned-features"></a>Planned Features
+
 - 🔨 &nbsp;Workspace configs for use of cli without having to set flags every time: `altv init -p ./server -b dev -t 30`
 - ⚙ &nbsp;&nbsp;JSON configuration for cdn's
 - 🤖 &nbsp;CI integrations
 
 ### <a name="supported-modules"></a>Supported Modules
+
 - ✅ &nbsp;alt:V Server (server)
 - ✅ &nbsp;alt:V Server Data (data-files)
 - ✅ &nbsp;JS Module v1 (js-module)
@@ -41,16 +46,22 @@ There are several altv server updater libraries and scripts out there, but none 
 - 🚧 &nbsp;alt:V Voice (voice)
 - 🚧 &nbsp;JS Module v2 (js-module-v2)
 - ⚠️ &nbsp;Go Module (go-module)
-> Go Module uses experimental custom github cdn provider. No checksum support.
-
-
+  > Go Module uses experimental custom github cdn provider. No checksum support.
 
 ## <a name="installation"></a>Installation
+
 If you have Go installed, you can install the cli with the following command:
+
 ```bash
 go install github.com/timo972/altv-cli/cmd/altv@latest
 ```
-Otherwise you can use the prebuilt binaries from github [releases]() or npm in the future.
+
+Otherwise you can use the prebuilt binaries from github [releases](https://github.com/Timo972/altv-cli/releases/latest) or npm. (❗x64 linux / windows only❗)
+
+```bash
+# npm / yarn / pnpm
+npm i -g @timo972/altv-cli
+```
 
 ## <a name="usage"></a>Usage
 
@@ -59,6 +70,7 @@ Consider using Makefile or a package.json script to simplify the usage.<br />
 
 Example `Makefile`:
 <a name="makefile"></a>
+
 ```makefile
 .PHONY: install update verify
 
@@ -76,6 +88,7 @@ verify:
 
 Example `package.json`:
 <a name="packagejson"></a>
+
 ```json
 {
   "scripts": {
@@ -90,11 +103,10 @@ This way you can use `make install`, `make update` or `make verify` to install, 
 If you prefer using npm, you can use `npm run altv-install`, `npm run altv-update` or `npm run altv-verify` instead.<br />
 
 <!-- badges -->
+
 [license-src]: https://img.shields.io/npm/l/%40timo972%2Faltv-cli?labelColor=18181B&color=28CF8D
 [license-href]: https://npmjs.com/package/@timo972/altv-cli
-
 [npm-version-src]: https://img.shields.io/npm/v/%40timo972/altv-cli?labelColor=18181B&color=28CF8D
 [npm-version-href]: https://npmjs.com/package/@timo792/altv-cli
-
 [actions-src]: https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml/badge.svg?branch=main
 [actions-href]: https://github.com/Timo972/altv-cli/actions/workflows/test-release.yml
