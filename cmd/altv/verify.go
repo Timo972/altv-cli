@@ -50,7 +50,7 @@ func init() {
 func printSummary(logger *log.Logger, status vcs.ModuleStatusResult) {
 	head := "| %-18s | %-9s %1s | %-9s %1s |"
 	row := "| %-18s | %-19s | %-19s |"
-	logger.Printf("status summary")
+	logger.Printf("integrity / version summary")
 	logger.Printf(head, "Module", "Integrity", "[✅|💥|⭕]", "Version", "[✅|🔼|⭕]")
 	logger.Printf("|%s|", strings.Repeat("-", 66))
 	for mod, stat := range status {
@@ -61,24 +61,23 @@ func printSummary(logger *log.Logger, status vcs.ModuleStatusResult) {
 }
 
 func statusToEmoji(status vcs.ModuleStatus) [2]string {
-	switch status {
-	case vcs.StatusInvalid:
-		return [2]string{"💥", "⭕"}
-	case vcs.StatusInvalidUpgradable:
-		return [2]string{"💥", "🔼"}
-	case vcs.StatusInvalidUpToDate:
-		return [2]string{"💥", "✅"}
-	case vcs.StatusValid:
-		return [2]string{"✅", "⭕"}
-	case vcs.StatusValidUpgradable:
-		return [2]string{"✅", "🔼"}
-	case vcs.StatusValidUpToDate:
-		return [2]string{"✅", "✅"}
-	case vcs.StatusUpToDate:
-		return [2]string{"⭕", "✅"}
-	case vcs.StatusUpgradable:
-		return [2]string{"⭕", "🔼"}
-	default:
-		return [2]string{"⭕", "⭕"}
+	str := [2]string{}
+
+	if status.Has(vcs.StatusValid) {
+		str[0] = "✅"
+	} else if status.Has(vcs.StatusInvalid) {
+		str[0] = "💥"
+	} else {
+		str[0] = "⭕"
 	}
+
+	if status.Has(vcs.StatusUpToDate) {
+		str[1] = "✅"
+	} else if status.Has(vcs.StatusUpgradable) {
+		str[1] = "🔼"
+	} else {
+		str[1] = "⭕"
+	}
+
+	return str
 }

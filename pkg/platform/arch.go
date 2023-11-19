@@ -51,9 +51,9 @@ func Platform() Arch {
 	switch os := runtime.GOOS; os {
 	case "windows":
 		return ArchWin32
+	default:
+		fallthrough
 	case "linux":
 		return ArchLinux
-	default:
-		return ""
 	}
 }

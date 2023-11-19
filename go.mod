@@ -1,11 +1,10 @@
 module github.com/timo972/altv-cli
 
-go 1.20
+go 1.21.1
 
 require (
 	github.com/google/go-github/v53 v53.2.0
 	github.com/spf13/cobra v1.7.0
-	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
 )
 
 require (

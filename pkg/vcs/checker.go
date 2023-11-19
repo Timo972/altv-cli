@@ -22,37 +22,19 @@ import (
 type ModuleStatus uint8
 
 const (
-	StatusValidUpgradable ModuleStatus = iota
-	StatusInvalidUpgradable
-	StatusValidUpToDate
-	StatusInvalidUpToDate
+	StatusValid ModuleStatus = 1 << iota
 	StatusInvalid
-	StatusValid
 	StatusUpToDate
 	StatusUpgradable
 )
 
-func (status ModuleStatus) Merge(status2 ModuleStatus) ModuleStatus {
-	switch true {
-	case status == StatusUpToDate && status2 == StatusValid:
-		fallthrough
-	case status == StatusValid && status2 == StatusUpToDate:
-		return StatusValidUpToDate
-	case status == StatusUpToDate && status2 == StatusInvalid:
-		fallthrough
-	case status == StatusInvalid && status2 == StatusUpToDate:
-		return StatusInvalidUpToDate
-	case status == StatusUpgradable && status2 == StatusValid:
-		fallthrough
-	case status == StatusValid && status2 == StatusUpgradable:
-		return StatusValidUpgradable
-	case status == StatusUpgradable && status2 == StatusInvalid:
-		fallthrough
-	case status == StatusInvalid && status2 == StatusUpgradable:
-		return StatusInvalidUpgradable
-	default:
-		return status
-	}
+func (status ModuleStatus) Add(status2 ModuleStatus) ModuleStatus {
+	status |= status2
+	return status
+}
+
+func (status ModuleStatus) Has(s ModuleStatus) bool {
+	return status&s != 0
 }
 
 type ModuleStatusResult map[string]ModuleStatus
@@ -285,11 +267,11 @@ func (c *checker) Verify(ctx context.Context, path string, remote bool) (ModuleS
 			if rstat, ok := rstatus[mod]; ok {
 				switch rstat {
 				case StatusInvalid:
-					result[mod] = lstat.Merge(StatusUpgradable)
+					result[mod] = lstat.Add(StatusUpgradable)
 				case StatusValid:
-					result[mod] = lstat.Merge(StatusUpToDate)
+					result[mod] = lstat.Add(StatusUpToDate)
 				default:
-					result[mod] = lstat.Merge(rstat)
+					result[mod] = lstat.Add(rstat)
 				}
 			} else {
 				logging.DebugLogger.Printf("no remote status for %s", mod)

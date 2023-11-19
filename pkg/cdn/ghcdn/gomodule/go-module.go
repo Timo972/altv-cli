@@ -2,6 +2,7 @@ package gomodule
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/google/go-github/v53/github"
@@ -10,7 +11,6 @@ import (
 	"github.com/timo972/altv-cli/pkg/logging"
 	"github.com/timo972/altv-cli/pkg/platform"
 	"github.com/timo972/altv-cli/pkg/version"
-	"golang.org/x/exp/slices"
 )
 
 func New() *ghcdn.Repository {
@@ -23,9 +23,9 @@ func New() *ghcdn.Repository {
 
 func releaseFilter(branch version.Branch, arch platform.Arch, releases []*github.RepositoryRelease) (*github.RepositoryRelease, error) {
 	// sort releases by creation date, latest -> oldest
-	slices.SortFunc[*github.RepositoryRelease](releases, func(a, b *github.RepositoryRelease) bool {
+	slices.SortFunc[[]*github.RepositoryRelease](releases, func(a, b *github.RepositoryRelease) int {
 		// checks wether release a was created before release b
-		return a.GetCreatedAt().Before(b.GetCreatedAt().Time)
+		return int(a.GetCreatedAt().Sub(b.GetCreatedAt().Time).Seconds())
 	})
 
 	var target *github.RepositoryRelease

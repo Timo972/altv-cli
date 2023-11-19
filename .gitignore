@@ -1,4 +1,4 @@
-altv-server*
+altv-*
 modules
 data
 server
@@ -26,3 +26,4 @@ go.work
 altv
 node_modules
 dist
+*update.json
